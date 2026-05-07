@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استبيان نظام المخزون الحالي - ERP المبسطة | تكاليف</title>
+    <!-- Bootstrap RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            min-height: 100vh;
+            color: #1e3a3a;
+            padding: 20px;
+        }
+        
+        .main-header {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 50px 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-bottom: 3px solid #52b788;
+        }
+        
+        .company-badge {
+            background: rgba(82, 183, 136, 0.3);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: 600;
+            border: 1px solid #52b788;
+            color: white;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+            background-color: #f8faf8;
+            border: 1px solid #e4f2e4;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            color: white;
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            border-bottom: 2px solid #52b788;
+        }
+        
+        .btn-custom {
+            background: #52b788;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid #1e4a3b;
+        }
+        
+        .btn-custom:hover {
+            background: #2d6a4e;
+            transform: scale(1.05);
+            color: white;
+            box-shadow: 0 5px 20px rgba(82, 183, 136, 0.4);
+        }
+        
+        .btn-excel {
+            background: #1e4a3b;
+            color: white;
+            border: 2px solid #52b788;
+        }
+        
+        .btn-excel:hover {
+            background: #2d6a4e;
+            color: white;
+        }
+        
+        .btn-pdf {
+            background: #4a6b5a;
+            color: white;
+            border: 2px solid #52b788;
+        }
+        
+        .btn-pdf:hover {
+            background: #1e4a3b;
+            color: white;
+        }
+        
+        .form-label {
+            color: #2d6a4e;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e4f2e4;
+            border-radius: 10px;
+            padding: 0.75rem;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #52b788;
+            box-shadow: 0 0 0 0.2rem rgba(82, 183, 136, 0.25);
+        }
+        
+        .data-entry-section {
+            background: #f0f7f0;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 3px solid #52b788;
+        }
+        
+        .client-info-card {
+            background: linear-gradient(135deg, #f8faf8 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px solid #52b788;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+        
+        .client-info-title {
+            color: #1e4a3b;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .client-info-title i {
+            color: #52b788;
+            margin-left: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .required-field::after {
+            content: "*";
+            color: #dc3545;
+            margin-right: 4px;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 3rem 0 1.5rem;
+            margin-top: 3rem;
+            border-radius: 50px 50px 0 0;
+            border-top: 3px solid #52b788;
+        }
+        
+        .footer-links {
+            color: #e4f2e4;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-links:hover {
+            color: #52b788;
+            padding-right: 5px;
+        }
+        
+        .contact-item {
+            margin-bottom: 10px;
+            color: #e4f2e4;
+        }
+        
+        .contact-item i {
+            color: #52b788;
+            margin-left: 10px;
+            width: 20px;
+        }
+        
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(82, 183, 136, 0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            color: #52b788;
+            transition: all 0.3s ease;
+            border: 1px solid #52b788;
+        }
+        
+        .social-icon:hover {
+            background: #52b788;
+            color: #0e3b2c;
+            transform: translateY(-3px);
+        }
+        
+        .nav-tabs-custom {
+            border-bottom: 3px solid #52b788;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #1e4a3b 0%, #2d6a4e 100%);
+            border-radius: 50px;
+            padding: 0.5rem;
+        }
+        
+        .nav-tabs-custom .nav-link {
+            color: white !important;
+            font-weight: 600;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs-custom .nav-link i {
+            color: white;
+        }
+        
+        .nav-tabs-custom .nav-link.active {
+            color: #1e4a3b !important;
+            background: #52b788;
+            border: 2px solid white;
+        }
+        
+        .nav-tabs-custom .nav-link.active i {
+            color: #1e4a3b;
+        }
+        
+        .preview-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid #52b788;
+            margin-bottom: 1.5rem;
+        }
+        
+        .preview-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed #e4f2e4;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .preview-label {
+            font-weight: 600;
+            color: #1e4a3b;
+            width: 40%;
+        }
+        
+        .preview-value {
+            color: #2d6a4e;
+            width: 60%;
+            text-align: left;
+        }
+        
+        .inventory-item {
+            background: #f8faf8;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e4f2e4;
+        }
+        
+        .inventory-item:hover {
+            background: #e8f5e9;
+            border-color: #52b788;
+        }
+        
+        /* PDF Export Container */
+        #pdf-export-container {
+            position: fixed;
+            top: -99999px;
+            left: -99999px;
+            width: 800px;
+            background: white;
+            z-index: 9999;
+            padding: 30px;
+            opacity: 0;
+            pointer-events: none;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .pdf-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            direction: rtl;
+        }
+        
+        .pdf-cover {
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            border: 4px solid #52b788;
+            text-align: center;
+        }
+        
+        .pdf-section-title {
+            color: #1e4a3b;
+            font-size: 20px;
+            font-weight: 800;
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #52b788;
+        }
+        
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 11px;
+            border: 1px solid #52b788;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .pdf-table th {
+            background: #1e4a3b;
+            color: white;
+            padding: 8px 6px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .pdf-table td {
+            padding: 6px;
+            border: 1px solid #e4f2e4;
+            text-align: right;
+            font-size: 10px;
+        }
+        
+        .pdf-footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, #0e3b2c 0%, #1b5e3f 100%);
+            color: white;
+            border-radius: 15px;
+            border: 2px solid #52b788;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="main-header text-center no-print">
+        <div class="container">
+            <span class="company-badge mb-3">تكاليف | حلول أعمال ذكية</span>
+            <h1 class="display-4 fw-bold mt-3" style="color: white;">
+                <i class="fas fa-boxes me-3"></i>
+                استبيان نظام المخزون الحالي
+            </h1>
+            <p class="lead" style="color: white;">خدمة حلول ERP المبسطة - تحليل عمليات المخزون وتقييم النظام الحالي</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs-custom nav-fill" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="data-entry-tab" data-bs-toggle="tab" data-bs-target="#dataEntry" type="button" role="tab">
+                    <i class="fas fa-edit me-2"></i> استبيان المعلومات
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview" type="button" role="tab">
+                    <i class="fas fa-eye me-2"></i> معاينة التقرير
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- Tab 1: Data Entry -->
+            <div class="tab-pane fade show active" id="dataEntry" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-boxes me-2"></i> استبيان نظام المخزون الحالي - ERP المبسطة
+                    </div>
+                    <div class="card-body">
+                        <!-- بيانات المنشأة -->
+                        <div class="client-info-card">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="client-info-title"><i class="fas fa-building"></i> بيانات المنشأة</div>
+                                    <div class="mb-3"><label class="form-label required-field">اسم المنشأة</label><input type="text" class="form-control" id="companyName" placeholder="أدخل اسم المنشأة"></div>
+                                    <div class="mb-3"><label class="form-label">النشاط الرئيسي</label><input type="text" class="form-control" id="businessActivity" placeholder="مثال: تصنيع / تجارة / خدمات"></div>
+                                    <div class="mb-3"><label class="form-label">حجم المنشأة</label><select class="form-select" id="companySize"><option value="">اختر...</option><option value="صغيرة (أقل من 50 موظف)">صغيرة (أقل من 50 موظف)</option><option value="متوسطة (50-250 موظف)">متوسطة (50-250 موظف)</option><option value="كبيرة (أكثر من 250 موظف)">كبيرة (أكثر من 250 موظف)</option></select></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="client-info-title"><i class="fas fa-address-card"></i> بيانات المسؤول</div>
+                                    <div class="mb-3"><label class="form-label required-field">اسم المسؤول عن التقييم</label><input type="text" class="form-control" id="contactPerson" placeholder="أدخل اسم المسؤول"></div>
+                                    <div class="mb-3"><label class="form-label required-field">المسمى الوظيفي</label><input type="text" class="form-control" id="jobTitle" placeholder="مثال: مدير المخزون"></div>
+                                    <div class="mb-3"><label class="form-label required-field">البريد الإلكتروني</label><input type="email" class="form-control" id="clientEmail" placeholder="example@company.com"></div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">رقم الهاتف</label><input type="tel" class="form-control" id="clientPhone" placeholder="رقم الهاتف"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">تاريخ التعبئة</label><input type="date" class="form-control" id="submissionDate" value="2026-03-30"></div></div>
+                                <div class="col-md-4"><div class="mb-3"><label class="form-label">العملة المستخدمة</label><select class="form-select" id="currencySelect"><option value="EGP" selected>جنيه مصري (EGP)</option><option value="SAR">ريال سعودي (SAR)</option><option value="AED">درهم إماراتي (AED)</option><option value="USD">دولار أمريكي (USD)</option></select></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الأول: معلومات عامة عن نظام المخزون -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-info-circle me-2"></i> القسم الأول: معلومات عامة عن نظام المخزون</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">نظام المخزون المستخدم حالياً</label><select class="form-select" id="inventorySystem"><option value="">اختر...</option><option value="Excel/Google Sheets">Excel/Google Sheets</option><option value="برنامج محاسبي منفصل">برنامج محاسبي منفصل</option><option value="نظام ERP متكامل">نظام ERP متكامل</option><option value="نظام سحابي متخصص">نظام سحابي متخصص</option><option value="لا يوجد نظام">لا يوجد نظام</option></select></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">اسم البرنامج المستخدم (إن وجد)</label><input type="text" class="form-control" id="softwareName" placeholder="مثال: Oracle, SAP, نظام داخلي"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">مدة استخدام النظام الحالي</label><select class="form-select" id="usageDuration"><option value="">اختر...</option><option value="أقل من سنة">أقل من سنة</option><option value="1-3 سنوات">1-3 سنوات</option><option value="3-5 سنوات">3-5 سنوات</option><option value="أكثر من 5 سنوات">أكثر من 5 سنوات</option></select></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">مستوى الرضا عن النظام الحالي</label><select class="form-select" id="satisfactionLevel"><option value="">اختر...</option><option value="مرتفع">مرتفع</option><option value="متوسط">متوسط</option><option value="منخفض">منخفض</option><option value="غير راضٍ تماماً">غير راضٍ تماماً</option></select></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الثاني: حجم المخزون والمنتجات -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-chart-simple me-2"></i> القسم الثاني: حجم المخزون والمنتجات</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">عدد الأصناف (SKU) في المخزون</label><input type="number" class="form-control" id="totalSKU" placeholder="مثال: 5000 صنف"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">قيمة المخزون الإجمالية</label><input type="text" class="form-control" id="totalInventoryValue" placeholder="مثال: 5,000,000 جنيه"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">عدد المستودعات أو المواقع</label><input type="number" class="form-control" id="warehousesCount" placeholder="مثال: 3 مستودعات"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">عدد موظفي المخزون</label><input type="number" class="form-control" id="inventoryStaff" placeholder="مثال: 10 موظفين"></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">تصنيف الأصناف (حسب النوع/المنتج/الفئة)</label><textarea class="form-control" id="itemClassification" rows="2" placeholder="اذكر طريقة تصنيف الأصناف"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الثالث: عمليات المخزون اليومية -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-exchange-alt me-2"></i> القسم الثالث: عمليات المخزون اليومية</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">متوسط حركات الدخل اليومية (وارد)</label><input type="number" class="form-control" id="dailyInbound" placeholder="مثال: 150 حركة"></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">متوسط حركات الصرف اليومية (صادر)</label><input type="number" class="form-control" id="dailyOutbound" placeholder="مثال: 200 حركة"></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">وصف عمليات المخزون الحالية (استلام، صرف، تحويل)</label><textarea class="form-control" id="inventoryProcess" rows="2" placeholder="صف كيفية إدارة حركات المخزون"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الرابع: المستندات والحركات -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-file-invoice me-2"></i> القسم الرابع: المستندات والحركات</h4>
+                            <div class="row">
+                                <div class="col-md-12"><label class="form-label">المستندات المستخدمة في نظام المخزون (اختر ما يناسب)</label></div>
+                                <div class="col-md-3"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="docReceipt" value="إذن استلام"><label class="form-check-label">إذن استلام</label></div></div>
+                                <div class="col-md-3"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="docIssue" value="إذن صرف"><label class="form-check-label">إذن صرف</label></div></div>
+                                <div class="col-md-3"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="docTransfer" value="أمر تحويل داخلي"><label class="form-check-label">أمر تحويل داخلي</label></div></div>
+                                <div class="col-md-3"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="docReturn" value="إذن مرتجع"><label class="form-check-label">إذن مرتجع</label></div></div>
+                                <div class="col-md-3"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="docAdjustment" value="تسوية جرد"><label class="form-check-label">تسوية جرد</label></div></div>
+                                <div class="col-md-12"><div class="mb-3 mt-3"><label class="form-label">مستندات أخرى</label><input type="text" class="form-control" id="otherDocuments" placeholder="اذكر أي مستندات أخرى"></div></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">طريقة تتبع المخزون</label><select class="form-select" id="trackingMethod"><option value="">اختر...</option><option value="دوري (Periodic)">دوري (Periodic)</option><option value="مستمر (Perpetual)">مستمر (Perpetual)</option><option value="مختلط">مختلط</option></select></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">طريقة تسعير المخزون</label><select class="form-select" id="valuationMethod"><option value="">اختر...</option><option value="FIFO (أولاً يدخل أولاً يخرج)">FIFO (أولاً يدخل أولاً يخرج)</option><option value="LIFO (آخراً يدخل أولاً يخرج)">LIFO (آخراً يدخل أولاً يخرج)</option><option value="المتوسط المرجح">المتوسط المرجح</option><option value="التكلفة المحددة">التكلفة المحددة</option></select></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الخامس: نظام الجرد -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-clipboard-list me-2"></i> القسم الخامس: نظام الجرد</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">تكرار الجرد</label><select class="form-select" id="inventoryFrequency"><option value="">اختر...</option><option value="شهري">شهري</option><option value="ربع سنوي">ربع سنوي</option><option value="نصف سنوي">نصف سنوي</option><option value="سنوي">سنوي</option><option value="جرد دوري متجدد">جرد دوري متجدد</option></select></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">طريقة الجرد</label><select class="form-select" id="inventoryMethod"><option value="">اختر...</option><option value="جرد كامل (في وقت واحد)">جرد كامل (في وقت واحد)</option><option value="جرد دوري (حسب الفئات)">جرد دوري (حسب الفئات)</option><option value="جرد عشوائي">جرد عشوائي</option><option value="باستخدام أجهزة المسح">باستخدام أجهزة المسح</option></select></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">نسبة الفروقات المسموحة في الجرد</label><input type="text" class="form-control" id="varianceTolerance" placeholder="مثال: 1%"></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">آلية معالجة فروقات الجرد</label><textarea class="form-control" id="varianceHandling" rows="2" placeholder="اذكر كيفية التعامل مع الفروقات"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم السادس: نظام الباركود والتتبع -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-barcode me-2"></i> القسم السادس: نظام الباركود والتتبع</h4>
+                            <div class="row">
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">استخدام الباركود في إدارة المخزون</label><select class="form-select" id="barcodeUsage"><option value="">اختر...</option><option value="نعم، نظام متكامل">نعم، نظام متكامل</option><option value="نعم، جزئي">نعم، جزئي</option><option value="لا، لا يستخدم">لا، لا يستخدم</option><option value="نخطط لاستخدامه">نخطط لاستخدامه</option></select></div></div>
+                                <div class="col-md-6"><div class="mb-3"><label class="form-label">أجهزة المسح المستخدمة</label><select class="form-select" id="scanningDevices"><option value="">اختر...</option><option value="أجهزة محمولة (Handheld)">أجهزة محمولة (Handheld)</option><option value="ماسحات ضوئية ثابتة">ماسحات ضوئية ثابتة</option><option value="تطبيقات جوال">تطبيقات جوال</option><option value="لا توجد">لا توجد</option></select></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">نظام تتبع الأصناف (رقم دفعة، تاريخ صلاحية، رقم تسلسلي)</label><textarea class="form-control" id="trackingSystem" rows="2" placeholder="اذكر نظام التتبع المستخدم"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم السابع: مشاكل وتحديات نظام المخزون -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-exclamation-triangle me-2"></i> القسم السابع: مشاكل وتحديات نظام المخزون</h4>
+                            <div class="row">
+                                <div class="col-md-12"><label class="form-label">المشاكل الموجودة في نظام المخزون الحالي (اختر ما يناسب)</label></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueInaccuracy" value="عدم دقة بيانات المخزون"><label class="form-check-label">عدم دقة بيانات المخزون</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueStockout" value="نفاد متكرر للمخزون"><label class="form-check-label">نفاد متكرر للمخزون</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueExcess" value="مخزون راكد وفائض"><label class="form-check-label">مخزون راكد وفائض</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueDelay" value="تأخر في تحديث الحركات"><label class="form-check-label">تأخر في تحديث الحركات</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueIntegration" value="عدم التكامل مع المبيعات والمشتريات"><label class="form-check-label">عدم التكامل مع المبيعات والمشتريات</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueReports" value="صعوبة في استخراج تقارير المخزون"><label class="form-check-label">صعوبة في استخراج تقارير المخزون</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueManual" value="اعتماد كبير على العمل اليدوي"><label class="form-check-label">اعتماد كبير على العمل اليدوي</label></div></div>
+                                <div class="col-md-4"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="issueLocations" value="ضعف تنظيم المستودعات والمواقع"><label class="form-check-label">ضعف تنظيم المستودعات والمواقع</label></div></div>
+                                <div class="col-md-12"><div class="mb-3 mt-3"><label class="form-label">مشاكل أخرى</label><textarea class="form-control" id="otherIssues" rows="2" placeholder="اذكر أي مشاكل أخرى في نظام المخزون"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <!-- القسم الثامن: احتياجات وتطلعات -->
+                        <div class="data-entry-section">
+                            <h4 class="mb-4" style="color: #1e4a3b;"><i class="fas fa-lightbulb me-2"></i> القسم الثامن: احتياجات وتطلعات</h4>
+                            <div class="row">
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">ما هي أهم التحسينات المطلوبة في نظام المخزون؟</label><textarea class="form-control" id="improvements" rows="3" placeholder="اذكر أهم التحسينات التي ترغب فيها"></textarea></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">التقارير المطلوبة في نظام المخزون الجديد</label><textarea class="form-control" id="requiredReports" rows="3" placeholder="اذكر التقارير التي تحتاجها"></textarea></div></div>
+                                <div class="col-md-12"><div class="mb-3"><label class="form-label">أي معلومات إضافية</label><textarea class="form-control" id="additionalInfo" rows="2" placeholder="أي معلومات إضافية"></textarea></div></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-custom btn-lg" onclick="refreshPreview()"><i class="fas fa-sync-alt me-2"></i> تحديث المعاينة</button>
+                            <button class="btn btn-custom btn-lg mx-2" onclick="resetForm()"><i class="fas fa-undo me-2"></i> إعادة تعيين</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Preview -->
+            <div class="tab-pane fade" id="preview" role="tabpanel">
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-file-alt me-2"></i> معاينة تقرير نظام المخزون الحالي</div>
+                    <div class="card-body" id="previewContent"></div>
+                </div>
+                <div class="text-center mb-4 no-print">
+                    <button class="btn btn-excel btn-lg mx-2" onclick="exportToExcel()"><i class="fas fa-file-excel me-2"></i> تصدير (Excel)</button>
+                    <button class="btn btn-pdf btn-lg mx-2" onclick="exportToPDF(event)"><i class="fas fa-file-pdf me-2"></i> تصدير التقرير (PDF)</button>
+                    <button class="btn btn-custom btn-lg mx-2" onclick="window.print()"><i class="fas fa-print me-2"></i> طباعة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer no-print">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;">تكاليف - حلول أعمال ذكية</h5><p style="color: #e4f2e4;">نقدم خدمات حلول ERP المبسطة وتحليل نظام المخزون.</p></div>
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;"><i class="fas fa-address-card me-2"></i>معلومات الاتصال</h5><div class="contact-item"><i class="fas fa-map-marker-alt"></i> القاهرة - مصر</div><div class="contact-item"><i class="fas fa-phone-alt"></i><a href="tel:+201044391177" class="footer-links">+20 104 439 1177</a></div><div class="contact-item"><i class="fas fa-envelope"></i><a href="mailto:info@takalief.com" class="footer-links">info@takalief.com</a></div><div class="contact-item"><i class="fas fa-globe"></i><a href="https://www.takalief.com" class="footer-links" target="_blank">www.takalief.com</a></div></div>
+                <div class="col-md-4 mb-4"><h5 style="color: #52b788;"><i class="fas fa-share-alt me-2"></i>تابعنا على</h5><div class="text-center"><a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a><a href="#" class="social-icon"><i class="fab fa-twitter"></i></a><a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a><a href="#" class="social-icon"><i class="fab fa-instagram"></i></a><a href="#" class="social-icon"><i class="fab fa-youtube"></i></a><a href="#" class="social-icon"><i class="fab fa-whatsapp"></i></a></div></div>
+            </div>
+            <hr>
+            <div class="row mt-3"><div class="col-md-6 text-md-start text-center"><p class="mb-0" style="color: #e4f2e4;"><i class="fas fa-copyright me-2" style="color: #52b788;"></i>2026 تكاليف - حلول أعمال ذكية. جميع الحقوق محفوظة</p></div><div class="col-md-6 text-md-end text-center"><a href="#" class="footer-links me-3">سياسة الخصوصية</a><a href="#" class="footer-links me-3">شروط الاستخدام</a><a href="#" class="footer-links">الدعم الفني</a></div></div>
+        </div>
+    </footer>
+
+    <div id="pdf-export-container"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let selectedCurrency = 'EGP';
+        const currencyNames = { 'EGP': 'جنيه مصري', 'SAR': 'ريال سعودي', 'AED': 'درهم إماراتي', 'USD': 'دولار أمريكي' };
+        
+        document.getElementById('currencySelect').addEventListener('change', function() {
+            selectedCurrency = this.value;
+            refreshPreview();
+        });
+        
+        function getDocumentsList() {
+            const docs = [];
+            const docIds = ['docReceipt', 'docIssue', 'docTransfer', 'docReturn', 'docAdjustment'];
+            docIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.checked) docs.push(el.value);
+            });
+            const other = document.getElementById('otherDocuments')?.value;
+            if (other) docs.push(other);
+            return docs;
+        }
+        
+        function getIssuesList() {
+            const issues = [];
+            const issueIds = ['issueInaccuracy', 'issueStockout', 'issueExcess', 'issueDelay', 'issueIntegration', 'issueReports', 'issueManual', 'issueLocations'];
+            issueIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.checked) issues.push(el.value);
+            });
+            return issues;
+        }
+        
+        function getFieldValue(id, defaultValue = '—') {
+            const element = document.getElementById(id);
+            return element && element.value.trim() !== '' ? element.value.trim() : defaultValue;
+        }
+        
+        function getNumberValue(id, defaultValue = '—') {
+            const element = document.getElementById(id);
+            return element && element.value.trim() !== '' ? element.value : defaultValue;
+        }
+        
+        function getSelectText(id, defaultValue = '—') {
+            const select = document.getElementById(id);
+            if (select && select.options[select.selectedIndex] && select.options[select.selectedIndex].value !== '') {
+                return select.options[select.selectedIndex].text;
+            }
+            return defaultValue;
+        }
+        
+        function refreshPreview() {
+            const documents = getDocumentsList();
+            const issues = getIssuesList();
+            
+            const previewHtml = `
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-building me-2"></i>بيانات المنشأة</h4>
+                <div class="preview-item"><span class="preview-label">اسم المنشأة</span><span class="preview-value">${getFieldValue('companyName')}</span></div>
+                <div class="preview-item"><span class="preview-label">النشاط الرئيسي</span><span class="preview-value">${getFieldValue('businessActivity')}</span></div>
+                <div class="preview-item"><span class="preview-label">حجم المنشأة</span><span class="preview-value">${getSelectText('companySize')}</span></div>
+                <div class="preview-item"><span class="preview-label">المسؤول</span><span class="preview-value">${getFieldValue('contactPerson')} (${getFieldValue('jobTitle')})</span></div>
+                <div class="preview-item"><span class="preview-label">البريد الإلكتروني</span><span class="preview-value">${getFieldValue('clientEmail')}</span></div>
+                <div class="preview-item"><span class="preview-label">رقم الهاتف</span><span class="preview-value">${getFieldValue('clientPhone')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-info-circle me-2"></i>معلومات عامة عن نظام المخزون</h4>
+                <div class="preview-item"><span class="preview-label">نظام المخزون الحالي</span><span class="preview-value">${getSelectText('inventorySystem')}</span></div>
+                <div class="preview-item"><span class="preview-label">اسم البرنامج</span><span class="preview-value">${getFieldValue('softwareName')}</span></div>
+                <div class="preview-item"><span class="preview-label">مدة الاستخدام</span><span class="preview-value">${getSelectText('usageDuration')}</span></div>
+                <div class="preview-item"><span class="preview-label">مستوى الرضا</span><span class="preview-value">${getSelectText('satisfactionLevel')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-chart-simple me-2"></i>حجم المخزون والمنتجات</h4>
+                <div class="preview-item"><span class="preview-label">عدد الأصناف (SKU)</span><span class="preview-value">${getNumberValue('totalSKU')}</span></div>
+                <div class="preview-item"><span class="preview-label">قيمة المخزون الإجمالية</span><span class="preview-value">${getFieldValue('totalInventoryValue')}</span></div>
+                <div class="preview-item"><span class="preview-label">عدد المستودعات</span><span class="preview-value">${getNumberValue('warehousesCount')}</span></div>
+                <div class="preview-item"><span class="preview-label">عدد موظفي المخزون</span><span class="preview-value">${getNumberValue('inventoryStaff')}</span></div>
+                <div class="preview-item"><span class="preview-label">تصنيف الأصناف</span><span class="preview-value">${getFieldValue('itemClassification')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-exchange-alt me-2"></i>عمليات المخزون اليومية</h4>
+                <div class="preview-item"><span class="preview-label">متوسط حركات الدخل اليومية</span><span class="preview-value">${getNumberValue('dailyInbound')}</span></div>
+                <div class="preview-item"><span class="preview-label">متوسط حركات الصرف اليومية</span><span class="preview-value">${getNumberValue('dailyOutbound')}</span></div>
+                <div class="preview-item"><span class="preview-label">وصف العمليات</span><span class="preview-value">${getFieldValue('inventoryProcess')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-file-invoice me-2"></i>المستندات والحركات</h4>
+                <div class="preview-item"><span class="preview-label">المستندات المستخدمة</span><span class="preview-value">${documents.length ? documents.join('، ') : 'لا توجد'}</span></div>
+                <div class="preview-item"><span class="preview-label">طريقة تتبع المخزون</span><span class="preview-value">${getSelectText('trackingMethod')}</span></div>
+                <div class="preview-item"><span class="preview-label">طريقة تسعير المخزون</span><span class="preview-value">${getSelectText('valuationMethod')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-clipboard-list me-2"></i>نظام الجرد</h4>
+                <div class="preview-item"><span class="preview-label">تكرار الجرد</span><span class="preview-value">${getSelectText('inventoryFrequency')}</span></div>
+                <div class="preview-item"><span class="preview-label">طريقة الجرد</span><span class="preview-value">${getSelectText('inventoryMethod')}</span></div>
+                <div class="preview-item"><span class="preview-label">نسبة الفروقات المسموحة</span><span class="preview-value">${getFieldValue('varianceTolerance')}</span></div>
+                <div class="preview-item"><span class="preview-label">آلية معالجة الفروقات</span><span class="preview-value">${getFieldValue('varianceHandling')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-barcode me-2"></i>نظام الباركود والتتبع</h4>
+                <div class="preview-item"><span class="preview-label">استخدام الباركود</span><span class="preview-value">${getSelectText('barcodeUsage')}</span></div>
+                <div class="preview-item"><span class="preview-label">أجهزة المسح المستخدمة</span><span class="preview-value">${getSelectText('scanningDevices')}</span></div>
+                <div class="preview-item"><span class="preview-label">نظام تتبع الأصناف</span><span class="preview-value">${getFieldValue('trackingSystem')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-exclamation-triangle me-2"></i>المشاكل والتحديات</h4>
+                <div class="preview-item"><span class="preview-label">المشاكل الموجودة</span><span class="preview-value">${issues.length ? issues.join('، ') : 'لا توجد مشاكل محددة'}</span></div>
+                <div class="preview-item"><span class="preview-label">مشاكل أخرى</span><span class="preview-value">${getFieldValue('otherIssues')}</span></div></div>
+                
+                <div class="preview-card"><h4 style="color: #1e4a3b;"><i class="fas fa-lightbulb me-2"></i>احتياجات وتطلعات</h4>
+                <div class="preview-item"><span class="preview-label">التحسينات المطلوبة</span><span class="preview-value">${getFieldValue('improvements')}</span></div>
+                <div class="preview-item"><span class="preview-label">التقارير المطلوبة</span><span class="preview-value">${getFieldValue('requiredReports')}</span></div>
+                <div class="preview-item"><span class="preview-label">معلومات إضافية</span><span class="preview-value">${getFieldValue('additionalInfo')}</span></div></div>
+                
+                <div class="preview-card text-center"><hr><p style="color: #1e4a3b;"><i class="fas fa-check-circle me-2"></i>تم تعبئة استبيان نظام المخزون الحالي بنجاح</p><p class="text-muted small">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-EG')}</p></div>
+            `;
+            document.getElementById('previewContent').innerHTML = previewHtml;
+        }
+        
+        function resetForm() { if(confirm('هل أنت متأكد من إعادة تعيين جميع البيانات؟')) location.reload(); }
+        
+        function exportToExcel() {
+            const companyName = getFieldValue('companyName', 'منشأة');
+            const documents = getDocumentsList();
+            const issues = getIssuesList();
+            
+            const excelData = [
+                ['استبيان نظام المخزون الحالي', 'خدمة حلول ERP المبسطة'],
+                ['تاريخ التقرير', new Date().toLocaleDateString('ar-EG')],
+                ['اسم المنشأة', companyName],
+                ['المسؤول', getFieldValue('contactPerson')],
+                ['المسمى الوظيفي', getFieldValue('jobTitle')],
+                ['البريد الإلكتروني', getFieldValue('clientEmail')],
+                ['رقم الهاتف', getFieldValue('clientPhone')],
+                [], ['1. معلومات عامة:', ''],
+                ['نظام المخزون الحالي', getSelectText('inventorySystem')],
+                ['اسم البرنامج', getFieldValue('softwareName')],
+                ['مدة الاستخدام', getSelectText('usageDuration')],
+                ['مستوى الرضا', getSelectText('satisfactionLevel')],
+                [], ['2. حجم المخزون والمنتجات:', ''],
+                ['عدد الأصناف (SKU)', getNumberValue('totalSKU')],
+                ['قيمة المخزون الإجمالية', getFieldValue('totalInventoryValue')],
+                ['عدد المستودعات', getNumberValue('warehousesCount')],
+                ['عدد موظفي المخزون', getNumberValue('inventoryStaff')],
+                ['تصنيف الأصناف', getFieldValue('itemClassification')],
+                [], ['3. عمليات المخزون اليومية:', ''],
+                ['متوسط حركات الدخل اليومية', getNumberValue('dailyInbound')],
+                ['متوسط حركات الصرف اليومية', getNumberValue('dailyOutbound')],
+                ['وصف العمليات', getFieldValue('inventoryProcess')],
+                [], ['4. المستندات والحركات:', ''],
+                ['المستندات المستخدمة', documents.length ? documents.join('، ') : 'لا توجد'],
+                ['طريقة تتبع المخزون', getSelectText('trackingMethod')],
+                ['طريقة تسعير المخزون', getSelectText('valuationMethod')],
+                [], ['5. نظام الجرد:', ''],
+                ['تكرار الجرد', getSelectText('inventoryFrequency')],
+                ['طريقة الجرد', getSelectText('inventoryMethod')],
+                ['نسبة الفروقات المسموحة', getFieldValue('varianceTolerance')],
+                ['آلية معالجة الفروقات', getFieldValue('varianceHandling')],
+                [], ['6. نظام الباركود والتتبع:', ''],
+                ['استخدام الباركود', getSelectText('barcodeUsage')],
+                ['أجهزة المسح المستخدمة', getSelectText('scanningDevices')],
+                ['نظام تتبع الأصناف', getFieldValue('trackingSystem')],
+                [], ['7. المشاكل والتحديات:', ''],
+                ['المشاكل الموجودة', issues.length ? issues.join('، ') : 'لا توجد'],
+                ['مشاكل أخرى', getFieldValue('otherIssues')],
+                [], ['8. احتياجات وتطلعات:', ''],
+                ['التحسينات المطلوبة', getFieldValue('improvements')],
+                ['التقارير المطلوبة', getFieldValue('requiredReports')],
+                ['معلومات إضافية', getFieldValue('additionalInfo')],
+                [], ['للتواصل: info@takalief.com | +20 104 439 1177'], ['www.takalief.com']
+            ];
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            ws['!cols'] = [{wch:30}, {wch:50}];
+            XLSX.utils.book_append_sheet(wb, ws, 'نظام_المخزون');
+            XLSX.writeFile(wb, `Inventory_System_${companyName.replace(/\s/g, '_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            alert('تم تصدير استبيان Excel بنجاح');
+        }
+        
+        async function exportToPDF(event) {
+            try {
+                const exportBtn = event.target;
+                const originalText = exportBtn.innerHTML;
+                exportBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> جاري إعداد التقرير...';
+                exportBtn.disabled = true;
+                
+                const pdfContainer = document.getElementById('pdf-export-container');
+                pdfContainer.innerHTML = '';
+                pdfContainer.style.opacity = '1';
+                pdfContainer.style.position = 'absolute';
+                pdfContainer.style.top = '0';
+                pdfContainer.style.left = '0';
+                pdfContainer.style.zIndex = '9999';
+                
+                const companyName = getFieldValue('companyName', 'غير محدد');
+                const contactPerson = getFieldValue('contactPerson', 'غير محدد');
+                const currentDate = new Date().toLocaleDateString('ar-EG');
+                const documents = getDocumentsList();
+                const issues = getIssuesList();
+                
+                const pdfWrapper = document.createElement('div');
+                pdfWrapper.className = 'pdf-wrapper';
+                pdfWrapper.innerHTML = `
+                    <div class="pdf-cover">
+                        <h1>استبيان نظام المخزون الحالي</h1>
+                        <h3>خدمة حلول ERP المبسطة</h3>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-top: 30px; border: 2px solid #52b788;">
+                            <p style="font-size: 18px;">المنشأة: ${companyName}</p>
+                            <p style="font-size: 16px;">المسؤول: ${contactPerson}</p>
+                            <p style="font-size: 16px;">تاريخ التقرير: ${currentDate}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="page-break-before: always;">
+                        <h2 class="pdf-section-title">بيانات المنشأة</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">اسم المنشأة</td><td style="text-align:right;">${getFieldValue('companyName')}</td></tr>
+                        <tr><td style="text-align:right;">النشاط الرئيسي</td><td style="text-align:right;">${getFieldValue('businessActivity')}</td></tr>
+                        <tr><td style="text-align:right;">حجم المنشأة</td><td style="text-align:right;">${getSelectText('companySize')}</td></tr>
+                        <tr><td style="text-align:right;">المسؤول</td><td style="text-align:right;">${getFieldValue('contactPerson')} (${getFieldValue('jobTitle')})</td></tr>
+                        <tr><td style="text-align:right;">البريد الإلكتروني</td><td style="text-align:right;">${getFieldValue('clientEmail')}</td></tr>
+                        <tr><td style="text-align:right;">رقم الهاتف</td><td style="text-align:right;">${getFieldValue('clientPhone')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">معلومات عامة عن نظام المخزون</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">نظام المخزون الحالي</td><td style="text-align:right;">${getSelectText('inventorySystem')}</td></tr>
+                        <tr><td style="text-align:right;">اسم البرنامج</td><td style="text-align:right;">${getFieldValue('softwareName')}</td></tr>
+                        <tr><td style="text-align:right;">مدة الاستخدام</td><td style="text-align:right;">${getSelectText('usageDuration')}</td></tr>
+                        <tr><td style="text-align:right;">مستوى الرضا</td><td style="text-align:right;">${getSelectText('satisfactionLevel')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">حجم المخزون والمنتجات</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">عدد الأصناف (SKU)</td><td style="text-align:right;">${getNumberValue('totalSKU')}</td></tr>
+                        <tr><td style="text-align:right;">قيمة المخزون الإجمالية</td><td style="text-align:right;">${getFieldValue('totalInventoryValue')}</td></tr>
+                        <tr><td style="text-align:right;">عدد المستودعات</td><td style="text-align:right;">${getNumberValue('warehousesCount')}</td></tr>
+                        <tr><td style="text-align:right;">عدد موظفي المخزون</td><td style="text-align:right;">${getNumberValue('inventoryStaff')}</td></tr>
+                        <tr><td style="text-align:right;">تصنيف الأصناف</td><td style="text-align:right;">${getFieldValue('itemClassification')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">عمليات المخزون اليومية</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">متوسط حركات الدخل اليومية</td><td style="text-align:right;">${getNumberValue('dailyInbound')}</td></tr>
+                        <tr><td style="text-align:right;">متوسط حركات الصرف اليومية</td><td style="text-align:right;">${getNumberValue('dailyOutbound')}</td></tr>
+                        <tr><td style="text-align:right;">وصف العمليات</td><td style="text-align:right;">${getFieldValue('inventoryProcess')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">المستندات والحركات</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">المستندات المستخدمة</td><td style="text-align:right;">${documents.length ? documents.join('، ') : 'لا توجد'}</td></tr>
+                        <tr><td style="text-align:right;">طريقة تتبع المخزون</td><td style="text-align:right;">${getSelectText('trackingMethod')}</td></tr>
+                        <tr><td style="text-align:right;">طريقة تسعير المخزون</td><td style="text-align:right;">${getSelectText('valuationMethod')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">نظام الجرد</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">تكرار الجرد</td><td style="text-align:right;">${getSelectText('inventoryFrequency')}</td></tr>
+                        <tr><td style="text-align:right;">طريقة الجرد</td><td style="text-align:right;">${getSelectText('inventoryMethod')}</td></tr>
+                        <tr><td style="text-align:right;">نسبة الفروقات المسموحة</td><td style="text-align:right;">${getFieldValue('varianceTolerance')}</td></tr>
+                        <tr><td style="text-align:right;">آلية معالجة الفروقات</td><td style="text-align:right;">${getFieldValue('varianceHandling')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">نظام الباركود والتتبع</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">استخدام الباركود</td><td style="text-align:right;">${getSelectText('barcodeUsage')}</td></tr>
+                        <tr><td style="text-align:right;">أجهزة المسح المستخدمة</td><td style="text-align:right;">${getSelectText('scanningDevices')}</td></tr>
+                        <tr><td style="text-align:right;">نظام تتبع الأصناف</td><td style="text-align:right;">${getFieldValue('trackingSystem')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">المشاكل والتحديات</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">المشاكل الموجودة</td><td style="text-align:right;">${issues.length ? issues.join('، ') : 'لا توجد مشاكل محددة'}</td></tr>
+                        <tr><td style="text-align:right;">مشاكل أخرى</td><td style="text-align:right;">${getFieldValue('otherIssues')}</td></tr></table>
+                        
+                        <h2 class="pdf-section-title">احتياجات وتطلعات</h2>
+                        <table class="pdf-table"><tr><th style="width: 35%;">البيان</th><th>القيمة</th></tr>
+                        <tr><td style="text-align:right;">التحسينات المطلوبة</td><td style="text-align:right;">${getFieldValue('improvements')}</td></tr>
+                        <tr><td style="text-align:right;">التقارير المطلوبة</td><td style="text-align:right;">${getFieldValue('requiredReports')}</td></tr>
+                        <tr><td style="text-align:right;">معلومات إضافية</td><td style="text-align:right;">${getFieldValue('additionalInfo')}</td></tr></table>
+                    </div>
+                    
+                    <div style="page-break-before: always; margin-top: 40px;">
+                        <div class="pdf-footer">
+                            <div style="font-size: 20px; font-weight: 700; color: #52b788;">تكاليف - حلول أعمال ذكية</div>
+                            <div>القاهرة - مصر | +20 104 439 1177 | info@takalief.com</div>
+                            <hr style="width: 150px; margin: 15px auto; border: 1px solid #52b788;">
+                            <p>تم تعبئة هذا الاستبيان لتحليل نظام المخزون الحالي</p>
+                            <p>تاريخ الإصدار: ${currentDate}</p>
+                            <p style="margin-top: 20px;">توقيع المسؤول: _________________________</p>
+                            <p>جميع الحقوق محفوظة © 2026</p>
+                        </div>
+                    </div>
+                `;
+                
+                pdfContainer.appendChild(pdfWrapper);
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                const canvas = await html2canvas(pdfContainer, { scale: 2, backgroundColor: '#ffffff', logging: false, useCORS: true });
+                const { jsPDF } = window.jspdf;
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const pageHeight = 297;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pageHeight;
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save(`Inventory_System_${companyName.replace(/[^\u0600-\u06FFa-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+                
+                pdfContainer.innerHTML = '';
+                pdfContainer.style.opacity = '0';
+                pdfContainer.style.position = 'fixed';
+                pdfContainer.style.top = '-99999px';
+                
+                exportBtn.innerHTML = originalText;
+                exportBtn.disabled = false;
+                alert('تم تصدير التقرير بنجاح');
+            } catch (error) {
+                console.error('PDF Error:', error);
+                alert('حدث خطأ: ' + error.message);
+                const exportBtn = event.target;
+                exportBtn.innerHTML = '<i class="fas fa-file-pdf me-2"></i> تصدير التقرير (PDF)';
+                exportBtn.disabled = false;
+            }
+        }
+        
+        function init() {
+            refreshPreview();
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('submissionDate')) document.getElementById('submissionDate').value = today;
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>
